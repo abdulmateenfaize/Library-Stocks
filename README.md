@@ -1,130 +1,190 @@
-LIBRARY BOOK MANAGEMENT SYSTEM
+/*
+Title: Library Book Management System
+Course: CS112 – Semester 2, 2025
+Assignment: 1
+Student:
+   - Abdul Mateen Faize 
 
-Introduction
+*/
 
-This is a Library Book Management System written in C++. The program reads book records from an input file (books.txt), processes them, and displays the library's inventory with the availability status of each book. It also allows the user to update the number of copies of a book by its ID.
+#include <iostream>
+#include <fstream>
+#include <string>
+#include<stdio.h>
+using namespace std;
 
-Key features:
+// Global Variable for the size of arrays.
+const int SIZE = 8;
 
-- Reads data (Book ID, Title, Copies Available) from books.txt.
-- Displays each book's status: Available or Out of Stock.
-- Shows:
-  - Book with the most copies.
-  - Total number of books in stock.
-  - Percentage of out-of-stock books.
-- Allows the user to update book copies interactively.
+// Initialization of function that prints 'Availible' or 'Out of Stock' according to the number of copies a book has.
+string check_book_availability(int num_book);
 
-How It Works
+//  Initialization of function checks the entry of the user, in case the usere misbehave.
+void Check_Entry(int* x);
 
-1. File Reading:
-   - Reads each book's ID, Title, and number of copies.
+struct Book {
 
-2. Availability Check:
-   - If copies > 0: "Available"
-   - If copies ≤ 0: "Out of Stock"
+	int Book_ID;
+	string Book_Title;
+	int Copies_Available;
+};
 
-3. Display:
-   - Prints all books with their status and copy count.
-   - Identifies the book with the highest copies.
-   - Calculates the total copies in stock.
-   - Shows the percentage of out-of-stock books.
+// Initialization of function display the output.
+void Display(Book book1[SIZE], string num_copies[SIZE]);
 
-4. Update Functionality:
-   - The user can update the number of copies for a book using its ID.
-   - Input validation ensures only valid integers are accepted.
-   - After each update, the full updated inventory is displayed.
-
-
-
+//  Initialization of function used for asking the user for an update in the data
+void Update_data(Book book1[SIZE], string num_copies[SIZE]);
 
 
+int main() {
 
-User Guide
+	Book book1[SIZE];
+	string num_copies[SIZE];
 
-This program is designed to enable users to view and update book records within a small library system.
+	ifstream in_file("books.txt");
+	if (!in_file.is_open()) {
+		cout << "File not found" << endl;
+		system("pause");
+		return 1;
+	}
 
-1. Program Start
+	// this comma is used to store the "," after the ID number of book in the .txt file.
+	char comma;
 
-When executed, the program automatically loads eight book records from the input file and displays them on the screen. For each book, the following information is shown:
+	for (int count = 0; count < SIZE; count++) {
+		// Reads the ID of the book including comma.
+		in_file >> book1[count].Book_ID >> comma;
+		// Reads the book title despit the spaces until the comma.
+		getline(in_file, book1[count].Book_Title, ',');
+		// Reads the number of copies a book has.
+		in_file >> book1[count].Copies_Available;
 
-- Book ID
-- Title
-- Availability status (Available or Out of Stock)
-- Number of copies currently in stock
+		//it stores the status of books as "Avilible" or "out of stock" in the array.
+		num_copies[count] = check_book_availability(book1[count].Copies_Available);
+	}
+	in_file.close();
 
-2. Library Statistics
+	cout << "------------------------------------------------------------" << endl;
+	cout << "		***Library Book Management System***" << endl;
+	cout << "------------------------------------------------------------" << endl;
 
-Along with the list of books, the program also calculates and displays:
+	// Function used to display the data stored.
+	Display(book1, num_copies);
 
-- The book with the highest number of copies
-- The total number of copies across all books
-- The percentage of books that are out of stock
+	// Asking the user for an update in the data
+	Update_data(book1, num_copies);
 
-3. Updating Records
+	system("pause");
+	return 0;
+}
 
-After the initial display, the program will prompt the user:
-"Press 'y' or 'Y' to update the number of copies for a book."
+// A functions that prints 'Availible' or 'Out of Stock' according to the number of copies a book has.
+string check_book_availability(int num_book) {
+	string available;
+	if (num_book <= 0) {
+		available = "Out of Stock";
+	}
+	else {
 
-- If the user chooses not to update (by pressing any other key), the program ends.
-- If the user presses y or Y, the following sequence occurs:
+		available = "Available";
+	}
+	return available;
+}
 
-  1. The program requests the Book ID of the record to be updated.
-     - If the entered ID does not exist, the program notifies the user ("Book not found!") and allows another attempt.
+//  function checks the entry of the user, in case the usere misbehave.
+void Check_Entry(int* x) {
+	cin >> *x;
+	while (cin.fail() || *x < 0) {
+		cout << "Unavilable or wrong entry. Please try again" << endl;
+		cin.clear();
+		cin.ignore(1000, '\n');
+		cin >> *x;
+	}
 
-  2. The program then requests the new number of copies.
-     - Invalid input (such as negative numbers or non-numeric values) is rejected, and the user is asked to re-enter a valid number.
+}
 
-  3. Once a valid entry is provided, the book record is updated and displayed, and the updated statistics are shown again.
+// function display the output.
+void Display(Book book1[SIZE], string num_copies[SIZE]) {
 
-4. Repeating Updates
+	int most_copy = 0;
+	int total_copies = 0;
+	int out_of_stock = 0;
+	double Out_Of_Stock_Percentage;
 
-The system allows multiple updates within a single session. After each update, the user is again prompted to continue or exit. Choosing y repeats the process; any other key will end the program.
+	cout << "\n\n";
 
-5. Program End
+	for (int count = 0; count < SIZE; count++) {
 
-The program closes when the user decides not to perform further updates.
+		cout << book1[count].Book_ID << ", "
+			<< book1[count].Book_Title << ", "
+			<< num_copies[count] << "["
+			<< book1[count].Copies_Available << "]" << endl;
 
-6. Important Notes
+		total_copies += book1[count].Copies_Available;
 
-- Updates made during execution are temporary. They are not saved to the original file and will be lost once the program terminates.
-- The program is currently limited to eight books, as defined in the code.
+		if (book1[most_copy].Copies_Available < book1[count].Copies_Available) {
+			most_copy = count;
+		}
 
+		if (book1[count].Copies_Available == 0) {
+			out_of_stock++;
+		}
+	}
 
+	Out_Of_Stock_Percentage = (out_of_stock * 100.0) / SIZE;
 
+	cout << "\n\nMost copies is from book:   " << book1[most_copy].Book_ID << ", "
+		<< book1[most_copy].Book_Title << ", "
+		<< num_copies[most_copy] << "[" << book1[most_copy].Copies_Available << "]" << endl;
 
+	cout << "Number of books in the stock: " << total_copies << endl;
 
+	cout << "Percentage of out of stock books is: " << Out_Of_Stock_Percentage << "%\n\n" << endl;
+}
 
-Variables Explanation:
+//  function used for asking the user for an update in the data
+void Update_data(Book book1[SIZE], string num_copies[SIZE]) {
 
-Global Constants
-- SIZE: Represents the fixed number of books the system can handle. In this assignment, it's set to 8.
+	string choice;
+	int bookID;
+	int Updated_copies;
+	bool found;
 
-Struct: Book
-The Book structure stores details of each book. It has three fields:
-- Book_ID: A unique integer assigned to each book.
-- Book_Title: A string storing the title of the book.
-- Copies_Available: An integer showing how many copies of the book are available in stock.
+	cout << "Press \' y \'  or \' Y \'to update the number of copies for a book." << endl;
+	cin >> choice;
 
-Arrays
-- book1[SIZE]: An array of Book objects that stores all the library's books read from the file.
-- num_copies[SIZE]: A string array storing the availability status of each book (either "Available" or "Out of Stock").
+	while (choice == "y" || choice == "Y") {
+		cout << "Please enter the book's ID:" << endl;
+		// it checks the entry of the user
+		Check_Entry(&bookID);
+		found = false;
 
-Input / File Handling
-- in_file: The input file stream object that reads data from books.txt.
-- comma: A character variable used to temporarily capture commas in the input file, which ensures book IDs, titles, and copies are correctly separated.
+		for (int i = 0; i < SIZE; i++) {
+			if (bookID == book1[i].Book_ID) {
+				found = true;
+				cout << "Enter the Number of copies:" << endl;
 
-Display Function Variables
-- most_copy: An integer that keeps the position of the book with the highest number of copies.
-- total_copies: An integer that counts the total number of book copies.
-- out_of_stock: An integer that counts how many books have zero copies available.
-- Out_Of_Stock_Percentage: A double value representing the percentage of books that are out of stock.
+				Check_Entry(&Updated_copies);
 
-Update Function Variables
-- choice: A string that stores the user's decision on whether they want to update book data (expected values: "y" or "Y" for yes).
-- bookID: An integer storing the user's input for the ID of the book they want to update.
-- Updated_copies: An integer storing the new number of copies provided by the user for the selected book.
-- found: A boolean flag used to check if the entered book ID exists in the system.
+				// Edit the array according to the update.
+				book1[i].Copies_Available = Updated_copies;
+				num_copies[i] = check_book_availability(Updated_copies);
+				cout << " Updated book: \n" <<
+					bookID << ", " << book1[i].Book_Title << ", "
+					<< num_copies[i] << "["
+					<< book1[i].Copies_Available << "]\n\n" << endl;
+				cout << "\n Updated data is: " << endl;
+				Display(book1, num_copies);
 
-Utility Function Variables
-- x (pointer in Check_Entry): A pointer to an integer that captures user input. The function ensures the input is valid (non-negative integer).
+				break;
+			}
+		}
+		// if the system didn't found the book
+		if (!found) {
+			cout << "Book not found!" << endl;
+		}
 
+		cout << "Press \' y \' or \' Y \' to update the number of copies for a book." << endl;
+		cin >> choice;
+	}
+}
